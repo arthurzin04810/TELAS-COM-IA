@@ -1,0 +1,1076 @@
+/* =====================================
+DADOS
+===================================== */
+
+let clientes =
+JSON.parse(
+localStorage.getItem("lac_clientes")
+) || [];
+
+let produtos =
+JSON.parse(
+localStorage.getItem("lac_produtos")
+) || [];
+
+let carrinho =
+JSON.parse(
+localStorage.getItem("lac_carrinho")
+) || [];
+
+/* =====================================
+NAVEGAÇÃO
+===================================== */
+
+const botoesMenu =
+document.querySelectorAll(".menu-btn");
+
+botoesMenu.forEach(botao => {
+
+botao.addEventListener("click", () => {
+
+abrirAba(botao.dataset.aba);
+
+
+});
+
+});
+
+function abrirAba(nome) {
+
+document
+.querySelectorAll(".aba")
+.forEach(aba => {
+
+  aba.classList.remove("ativa");
+
+});
+
+
+const aba =
+document.getElementById(nome);
+
+if (aba) {
+
+aba.classList.add("ativa");
+
+
+}
+
+botoesMenu.forEach(botao => {
+
+botao.classList.remove("ativo");
+
+
+if (
+  botao.dataset.aba === nome
+) {
+
+  botao.classList.add("ativo");
+
+}
+
+
+});
+
+if (nome === "vendas") {
+
+atualizarVitrine();
+
+
+}
+
+}
+
+/* =====================================
+CLIENTES
+===================================== */
+
+const formCliente =
+document.getElementById(
+"formCliente"
+);
+
+formCliente.addEventListener(
+"submit",
+function(event) {
+
+event.preventDefault();
+
+
+const dados =
+  new FormData(formCliente);
+
+
+const cliente = {
+
+  id: Date.now(),
+
+  nome: dados.get("nome"),
+
+  cpf: dados.get("cpf"),
+
+  telefone: dados.get("telefone"),
+
+  email: dados.get("email"),
+
+  cep: dados.get("cep"),
+
+  logradouro:
+    dados.get("logradouro"),
+
+  numero:
+    dados.get("numero"),
+
+  complemento:
+    dados.get("complemento"),
+
+  bairro:
+    dados.get("bairro"),
+
+  cidade:
+    dados.get("cidade"),
+
+  uf:
+    dados.get("uf").toUpperCase()
+
+};
+
+
+clientes.push(cliente);
+
+
+localStorage.setItem(
+  "lac_clientes",
+  JSON.stringify(clientes)
+);
+
+
+formCliente.reset();
+
+
+document.getElementById(
+  "avisoCliente"
+).textContent =
+  "Cliente cadastrado com sucesso!";
+
+
+atualizarClientes();
+
+atualizarResumo();
+
+
+setTimeout(() => {
+
+  document.getElementById(
+    "avisoCliente"
+  ).textContent = "";
+
+}, 3000);
+
+
+}
+);
+
+/* =====================================
+LISTAR CLIENTES
+===================================== */
+
+function atualizarClientes() {
+
+const corpo =
+document.getElementById(
+"corpoClientes"
+);
+
+corpo.innerHTML = "";
+
+if (clientes.length === 0) {
+
+corpo.innerHTML = `
+
+  <tr>
+
+    <td colspan="6">
+      Nenhum cliente cadastrado.
+    </td>
+
+  </tr>
+
+`;
+
+return;
+
+
+}
+
+clientes.forEach(cliente => {
+
+const tr =
+  document.createElement("tr");
+
+
+tr.innerHTML = `
+
+  <td>
+    ${cliente.id}
+  </td>
+
+  <td>
+    ${cliente.nome}
+  </td>
+
+  <td>
+    ${cliente.telefone || "-"}
+  </td>
+
+  <td>
+    ${cliente.cidade}
+  </td>
+
+  <td>
+    ${cliente.uf}
+  </td>
+
+  <td>
+
+    <button
+      class="btn-excluir"
+      onclick="excluirCliente(${cliente.id})">
+
+      Excluir
+
+    </button>
+
+  </td>
+
+`;
+
+
+corpo.appendChild(tr);
+
+
+});
+
+}
+
+/* =====================================
+EXCLUIR CLIENTE
+===================================== */
+
+function excluirCliente(id) {
+
+if (
+!confirm(
+"Deseja excluir este cliente?"
+)
+) {
+
+return;
+
+
+}
+
+clientes =
+clientes.filter(
+cliente =>
+cliente.id !== id
+);
+
+localStorage.setItem(
+"lac_clientes",
+JSON.stringify(clientes)
+);
+
+atualizarClientes();
+
+atualizarResumo();
+
+}
+
+/* =====================================
+UPLOAD DE IMAGEM
+===================================== */
+
+const inputImagem =
+document.getElementById(
+"imagemProduto"
+);
+
+let imagemSelecionada = "";
+
+inputImagem.addEventListener(
+"change",
+function() {
+
+const arquivo =
+  this.files[0];
+
+
+if (!arquivo) {
+
+  imagemSelecionada = "";
+
+  return;
+
+}
+
+
+const leitor =
+  new FileReader();
+
+
+leitor.onload =
+  function(event) {
+
+    imagemSelecionada =
+      event.target.result;
+
+
+    document.getElementById(
+      "previewImagem"
+    ).innerHTML = `
+
+      <img
+        src="${imagemSelecionada}"
+        alt="Prévia do produto">
+
+    `;
+
+  };
+
+
+leitor.readAsDataURL(arquivo);
+
+
+}
+);
+
+/* =====================================
+PRODUTOS
+===================================== */
+
+const formProduto =
+document.getElementById(
+"formProduto"
+);
+
+formProduto.addEventListener(
+"submit",
+function(event) {
+
+event.preventDefault();
+
+
+const dados =
+  new FormData(formProduto);
+
+
+const produto = {
+
+  id: Date.now(),
+
+  nome:
+    dados.get("produto"),
+
+  codigo:
+    dados.get("codigo"),
+
+  categoria:
+    dados.get("categoria"),
+
+  preco:
+    Number(
+      dados.get("preco")
+    ),
+
+  estoque:
+    Number(
+      dados.get("estoque")
+    ),
+
+  descricao:
+    dados.get("descricao"),
+
+  imagem:
+    imagemSelecionada
+
+};
+
+
+produtos.push(produto);
+
+
+localStorage.setItem(
+  "lac_produtos",
+  JSON.stringify(produtos)
+);
+
+
+formProduto.reset();
+
+
+document.getElementById(
+  "previewImagem"
+).innerHTML = "";
+
+
+imagemSelecionada = "";
+
+
+document.getElementById(
+  "avisoProduto"
+).textContent =
+  "Produto cadastrado com sucesso!";
+
+
+atualizarProdutos();
+
+atualizarVitrine();
+
+atualizarResumo();
+
+
+setTimeout(() => {
+
+  document.getElementById(
+    "avisoProduto"
+  ).textContent = "";
+
+}, 3000);
+
+
+}
+);
+
+/* =====================================
+LISTAR PRODUTOS
+===================================== */
+
+function atualizarProdutos() {
+
+const corpo =
+document.getElementById(
+"corpoProdutos"
+);
+
+corpo.innerHTML = "";
+
+if (produtos.length === 0) {
+
+corpo.innerHTML = `
+
+  <tr>
+
+    <td colspan="7">
+      Nenhum produto cadastrado.
+    </td>
+
+  </tr>
+
+`;
+
+return;
+
+
+}
+
+produtos.forEach(produto => {
+
+const tr =
+  document.createElement("tr");
+
+
+const imagem =
+  produto.imagem
+
+    ? `
+      <img
+        class="imagem-tabela"
+        src="${produto.imagem}"
+        alt="${produto.nome}">
+    `
+
+    : "⚽";
+
+
+const preco =
+  produto.preco.toLocaleString(
+    "pt-BR",
+    {
+      style: "currency",
+      currency: "BRL"
+    }
+  );
+
+
+tr.innerHTML = `
+
+  <td>
+    ${imagem}
+  </td>
+
+  <td>
+    ${produto.id}
+  </td>
+
+  <td>
+    ${produto.nome}
+  </td>
+
+  <td>
+    ${produto.categoria}
+  </td>
+
+  <td>
+    ${preco}
+  </td>
+
+  <td>
+    ${produto.estoque}
+  </td>
+
+  <td>
+
+    <button
+      class="btn-excluir"
+      onclick="excluirProduto(${produto.id})">
+
+      Excluir
+
+    </button>
+
+  </td>
+
+`;
+
+
+corpo.appendChild(tr);
+
+
+});
+
+}
+
+/* =====================================
+EXCLUIR PRODUTO
+===================================== */
+
+function excluirProduto(id) {
+
+if (
+!confirm(
+"Deseja excluir este produto?"
+)
+) {
+
+return;
+
+
+}
+
+produtos =
+produtos.filter(
+produto =>
+produto.id !== id
+);
+
+localStorage.setItem(
+"lac_produtos",
+JSON.stringify(produtos)
+);
+
+atualizarProdutos();
+
+atualizarVitrine();
+
+atualizarResumo();
+
+}
+
+/* =====================================
+VITRINE
+===================================== */
+
+function atualizarVitrine() {
+
+const vitrine =
+document.getElementById(
+"vitrineProdutos"
+);
+
+const busca =
+document.getElementById(
+"campoBusca"
+).value
+.toLowerCase();
+
+const categoria =
+document.getElementById(
+"filtroCategoria"
+).value;
+
+vitrine.innerHTML = "";
+
+const filtrados =
+produtos.filter(produto => {
+
+  const correspondeNome =
+    produto.nome
+      .toLowerCase()
+      .includes(busca);
+
+
+  const correspondeCategoria =
+    categoria === "todos" ||
+    produto.categoria === categoria;
+
+
+  return (
+    correspondeNome &&
+    correspondeCategoria
+  );
+
+});
+
+
+if (filtrados.length === 0) {
+
+vitrine.innerHTML = `
+
+  <div class="painel">
+
+    <h3>
+      Nenhum produto encontrado.
+    </h3>
+
+    <p>
+      Cadastre produtos na aba
+      "Produtos" para que eles
+      apareçam aqui.
+    </p>
+
+  </div>
+
+`;
+
+return;
+
+
+}
+
+filtrados.forEach(produto => {
+
+const card =
+  document.createElement("div");
+
+
+card.className =
+  "produto-card";
+
+
+const preco =
+  produto.preco.toLocaleString(
+    "pt-BR",
+    {
+      style: "currency",
+      currency: "BRL"
+    }
+  );
+
+
+let imagemHTML;
+
+
+if (produto.imagem) {
+
+  imagemHTML = `
+
+    <img
+      src="${produto.imagem}"
+      alt="${produto.nome}">
+
+  `;
+
+} else {
+
+  imagemHTML = `
+
+    <div class="sem-imagem">
+      ⚽
+    </div>
+
+  `;
+
+}
+
+
+card.innerHTML = `
+
+  <div class="produto-imagem">
+
+    ${imagemHTML}
+
+  </div>
+
+
+  <div class="produto-info">
+
+    <div class="produto-categoria">
+
+      ${produto.categoria}
+
+    </div>
+
+
+    <div class="produto-nome">
+
+      ${produto.nome}
+
+    </div>
+
+
+    <div class="produto-descricao">
+
+      ${produto.descricao || "Produto de futebol LAC Esportes."}
+
+    </div>
+
+
+    <div class="produto-preco">
+
+      ${preco}
+
+    </div>
+
+
+    <div class="produto-estoque">
+
+      ${
+        produto.estoque > 0
+          ? `${produto.estoque} unidade(s) disponíveis`
+          : "Produto esgotado"
+      }
+
+    </div>
+
+
+    <button
+      class="botao-comprar"
+      onclick="adicionarCarrinho(${produto.id})"
+      ${produto.estoque <= 0 ? "disabled" : ""}>
+
+      ${
+        produto.estoque > 0
+          ? "Adicionar ao carrinho"
+          : "Produto esgotado"
+      }
+
+    </button>
+
+  </div>
+
+`;
+
+
+vitrine.appendChild(card);
+
+
+});
+
+}
+
+/* =====================================
+BUSCA E FILTRO
+===================================== */
+
+document
+.getElementById("campoBusca")
+.addEventListener(
+"input",
+atualizarVitrine
+);
+
+document
+.getElementById("filtroCategoria")
+.addEventListener(
+"change",
+atualizarVitrine
+);
+
+/* =====================================
+CARRINHO
+===================================== */
+
+function adicionarCarrinho(id) {
+
+const produto =
+produtos.find(
+produto =>
+produto.id === id
+);
+
+if (!produto) {
+return;
+}
+
+const item =
+carrinho.find(
+item =>
+item.id === id
+);
+
+if (item) {
+
+if (
+  item.quantidade <
+  produto.estoque
+) {
+
+  item.quantidade++;
+
+}
+
+
+} else {
+
+carrinho.push({
+
+  id: produto.id,
+
+  quantidade: 1
+
+});
+
+
+}
+
+salvarCarrinho();
+
+atualizarCarrinho();
+
+abrirCarrinho();
+
+}
+
+function salvarCarrinho() {
+
+localStorage.setItem(
+"lac_carrinho",
+JSON.stringify(carrinho)
+);
+
+}
+
+function atualizarCarrinho() {
+
+const quantidade =
+carrinho.reduce(
+(total, item) =>
+total + item.quantidade,
+0
+);
+
+document.getElementById(
+"contadorCarrinho"
+).textContent =
+quantidade;
+
+document.getElementById(
+"totalCarrinho"
+).textContent =
+quantidade;
+
+document.getElementById(
+"carrinhoLoja"
+).textContent =
+quantidade;
+
+const area =
+document.getElementById(
+"itensCarrinho"
+);
+
+area.innerHTML = "";
+
+let total = 0;
+
+carrinho.forEach(item => {
+
+const produto =
+  produtos.find(
+    produto =>
+      produto.id === item.id
+  );
+
+
+if (!produto) {
+  return;
+}
+
+
+const subtotal =
+  produto.preco *
+  item.quantidade;
+
+
+total += subtotal;
+
+
+const div =
+  document.createElement("div");
+
+
+div.className =
+  "item-carrinho";
+
+
+div.innerHTML = `
+
+  ${
+    produto.imagem
+
+      ? `
+        <img
+          src="${produto.imagem}"
+          alt="${produto.nome}">
+      `
+
+      : `
+        <div class="icone">
+          ⚽
+        </div>
+      `
+  }
+
+
+  <div class="item-info">
+
+    <strong>
+      ${produto.nome}
+    </strong>
+
+    <span>
+      ${item.quantidade} x
+      ${produto.preco.toLocaleString(
+        "pt-BR",
+        {
+          style: "currency",
+          currency: "BRL"
+        }
+      )}
+    </span>
+
+  </div>
+
+
+  <strong>
+
+    ${subtotal.toLocaleString(
+      "pt-BR",
+      {
+        style: "currency",
+        currency: "BRL"
+      }
+    )}
+
+  </strong>
+
+`;
+
+
+area.appendChild(div);
+
+
+});
+
+document.getElementById(
+"valorTotal"
+).textContent =
+total.toLocaleString(
+"pt-BR",
+{
+style: "currency",
+currency: "BRL"
+}
+);
+
+}
+
+function abrirCarrinho() {
+
+document
+.getElementById(
+"areaCarrinho"
+)
+.classList.add("aberto");
+
+}
+
+function fecharCarrinho() {
+
+document
+.getElementById(
+"areaCarrinho"
+)
+.classList.remove("aberto");
+
+}
+
+function finalizarCompra() {
+
+if (carrinho.length === 0) {
+
+alert(
+  "Seu carrinho está vazio."
+);
+
+return;
+
+
+}
+
+alert(
+"Compra registrada! Em uma próxima versão podemos adicionar pagamento, cliente e pedido."
+);
+
+carrinho = [];
+
+salvarCarrinho();
+
+atualizarCarrinho();
+
+fecharCarrinho();
+
+}
+
+/* =====================================
+RESUMO
+===================================== */
+
+function atualizarResumo() {
+
+document.getElementById(
+"totalClientes"
+).textContent =
+clientes.length;
+
+document.getElementById(
+"totalProdutos"
+).textContent =
+produtos.length;
+
+}
+
+/* =====================================
+INICIALIZAÇÃO
+===================================== */
+
+atualizarClientes();
+
+atualizarProdutos();
+
+atualizarVitrine();
+
+atualizarCarrinho();
+
+atualizarResumo();
