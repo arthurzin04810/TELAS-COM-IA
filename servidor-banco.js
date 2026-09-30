@@ -74,8 +74,25 @@ var servidor = http.createServer(function (req, res) {
       var sql = 'INSERT INTO clientes(cliente_cpf, cliente_telefone, cliente_nome, cliente_bairro, cliente_cidade, cliente_uf, cliente_logradouro, cliente_numero_residencia, cliente_cep, cliente_email)' +
                 'VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)';
 
-      var valores = [novo.cep, novo.logradouro, novo.numero,
-                     novo.complemento, novo.bairro, novo.cidade, novo.uf];
+      var valores = [novo.cpf, novo.telefone, novo.nome,
+                    novo.bairro, novo.cidade, novo.uf, novo.logradouro, novo.numero_residencia, novo.cep, novo.email   ];
+
+      
+
+      var sql = 'INSERT INTO (produto_nome, produto_categoria, produto_preco, produto_estoque, produto_descricao)' +
+                'VALUES (?, ?, ?, ?, ?)';
+     var valores = [novo.nome, novo.categoria, novo.preco,
+                    novo.estoque, novo.descricao  ];
+
+      
+      
+
+
+
+
+
+
+
 
 
                      
